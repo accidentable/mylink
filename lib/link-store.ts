@@ -6,13 +6,18 @@
 // 나중에 Firebase로 바꿀 때는 이 파일 안쪽만 고치면 된다.
 
 import { useSyncExternalStore } from "react";
-import { links as seedLinks, profile as seedProfile, type LinkItem } from "@/data/links";
+import {
+  links as seedLinks,
+  profile as seedProfile,
+  type LinkGroup,
+  type LinkItem,
+} from "@/data/links";
 
 export type Profile = typeof seedProfile;
 export type StoredLink = LinkItem & { clicks: number };
 export type MyLinkState = { profile: Profile; links: StoredLink[] };
 
-const STORAGE_KEY = "mylink:v1";
+const STORAGE_KEY = "mylink:v2";
 
 const seedState: MyLinkState = {
   profile: seedProfile,
@@ -33,7 +38,11 @@ function load() {
     if (parsed && Array.isArray(parsed.links) && parsed.profile) {
       state = {
         profile: { ...seedProfile, ...parsed.profile },
-        links: parsed.links.map((l) => ({ ...l, clicks: Number(l.clicks) || 0 })),
+        links: parsed.links.map((l) => ({
+          ...l,
+          group: l.group === "about" ? "about" : "work",
+          clicks: Number(l.clicks) || 0,
+        })),
       };
     }
   } catch {
@@ -81,20 +90,24 @@ export function useMyLink() {
 
 /* ---------- CRUD ---------- */
 
-export function addLink(input: { title: string; url: string; description?: string }) {
+export type LinkInput = { title: string; url: string; group: LinkGroup; description?: string };
+
+export function addLink(input: LinkInput) {
   load();
   const item: StoredLink = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     title: input.title,
     url: input.url,
+    group: input.group,
     description: input.description || undefined,
+    icon: "link",
     clicks: 0,
   };
   commit({ ...state, links: [...state.links, item] });
   return item;
 }
 
-export function updateLink(id: string, patch: { title: string; url: string; description?: string }) {
+export function updateLink(id: string, patch: LinkInput) {
   load();
   commit({
     ...state,

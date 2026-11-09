@@ -18,8 +18,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { LinkFormFields } from "@/components/mylink/link-form-fields";
-import { hostOf } from "@/components/mylink/link-list";
+import { LinkFormFields, type LinkFields } from "@/components/mylink/link-form-fields";
+import { LinkIcon } from "@/components/mylink/link-icon";
+import { kindOf } from "@/components/mylink/link-list";
+import { GROUPS } from "@/data/links";
 import {
   addLink,
   deleteLink,
@@ -43,7 +45,7 @@ const SECTIONS = [
 
 export default function MyPage() {
   return (
-    <main className="mx-auto w-full max-w-[560px] px-4 pb-16 pt-10 md:px-5 md:pt-14">
+    <main className="mx-auto w-full max-w-[600px] px-4 pb-16 pt-12 md:px-6 md:pt-16">
       <header className="border-b border-border pb-6">
         <h1 className="text-2xl font-bold tracking-tight">내 링크 관리</h1>
         <p className="mt-2 text-muted-foreground">
@@ -143,7 +145,8 @@ function ProfileSection() {
 
 /* 2. 링크 추가 (7주차 Create) */
 function AddSection() {
-  const [fields, setFields] = useState({ title: "", url: "", description: "" });
+  const empty: LinkFields = { title: "", url: "", description: "", group: "work" };
+  const [fields, setFields] = useState<LinkFields>(empty);
   const [errors, setErrors] = useState<LinkErrors>({});
   const [message, setMessage] = useState("");
 
@@ -158,9 +161,10 @@ function AddSection() {
     const item = addLink({
       title: fields.title.trim(),
       url: normalizeUrl(fields.url),
+      group: fields.group,
       description: fields.description.trim(),
     });
-    setFields({ title: "", url: "", description: "" });
+    setFields(empty);
     setMessage(`"${item.title}" 링크를 추가했습니다.`);
   }
 
@@ -204,7 +208,7 @@ function ManageSection() {
       ) : (
         <ul className="border-t border-border">
           {links.map((item, index) => (
-            <li key={item.id} className="border-b border-border py-3">
+            <li key={item.id} className="border-b border-border py-4">
               {editingId === item.id ? (
                 <EditRow item={item} onDone={() => setEditingId(null)} />
               ) : (
@@ -236,11 +240,16 @@ function ViewRow({
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <p className="font-medium">{item.title}</p>
-        <p className="truncate text-sm text-muted-foreground">{hostOf(item.url)}</p>
+      <div className="flex min-w-0 items-center gap-3">
+        <LinkIcon name={item.icon} />
+        <div className="min-w-0">
+          <p className="font-medium leading-snug">{item.title}</p>
+          <p className="truncate text-[13px] text-muted-foreground">
+            {GROUPS.find((g) => g.id === (item.group ?? "work"))?.title} · {kindOf(item.url)}
+          </p>
+        </div>
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1 pl-[52px] sm:pl-0">
         <Button
           variant="ghost"
           size="icon"
@@ -291,10 +300,11 @@ function ViewRow({
 }
 
 function EditRow({ item, onDone }: { item: StoredLink; onDone: () => void }) {
-  const [fields, setFields] = useState({
+  const [fields, setFields] = useState<LinkFields>({
     title: item.title,
     url: item.url,
     description: item.description ?? "",
+    group: item.group ?? "work",
   });
   const [errors, setErrors] = useState<LinkErrors>({});
 
@@ -306,6 +316,7 @@ function EditRow({ item, onDone }: { item: StoredLink; onDone: () => void }) {
     updateLink(item.id, {
       title: fields.title.trim(),
       url: normalizeUrl(fields.url),
+      group: fields.group,
       description: fields.description.trim(),
     });
     onDone();

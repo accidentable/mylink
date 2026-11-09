@@ -2,19 +2,19 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GROUPS, type LinkGroup } from "@/data/links";
 import type { LinkErrors } from "@/lib/link-store";
 
-type Props = {
+export type LinkFields = { title: string; url: string; description: string; group: LinkGroup };
+
+type Props = LinkFields & {
   idPrefix: string;
-  title: string;
-  url: string;
-  description: string;
   errors: LinkErrors;
-  onChange: (field: "title" | "url" | "description", value: string) => void;
+  onChange: <K extends keyof LinkFields>(field: K, value: LinkFields[K]) => void;
 };
 
-// 추가 폼과 수정 폼이 같이 쓰는 입력칸 세 개.
-export function LinkFormFields({ idPrefix, title, url, description, errors, onChange }: Props) {
+// 추가 폼과 수정 폼이 같이 쓰는 입력칸.
+export function LinkFormFields({ idPrefix, title, url, description, group, errors, onChange }: Props) {
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
@@ -64,6 +64,24 @@ export function LinkFormFields({ idPrefix, title, url, description, errors, onCh
           className="h-11"
         />
       </div>
+      <fieldset className="space-y-1.5">
+        <legend className="mb-1.5 text-sm font-medium">넣을 곳</legend>
+        <div className="flex flex-wrap gap-x-6">
+          {GROUPS.map((g) => (
+            <label key={g.id} className="flex min-h-11 cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name={`${idPrefix}-group`}
+                value={g.id}
+                checked={group === g.id}
+                onChange={() => onChange("group", g.id)}
+                className="size-4 accent-[var(--primary)]"
+              />
+              {g.title}
+            </label>
+          ))}
+        </div>
+      </fieldset>
     </div>
   );
 }
