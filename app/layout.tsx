@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
-
-const notoSansKr = Noto_Sans_KR({
-  variable: "--font-noto-sans-kr",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-});
 
 const SITE_URL = "https://accidentable.github.io/mylink/";
 const TITLE = "윤태호 | 마이링크";
@@ -43,7 +36,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={`${notoSansKr.variable} bg-background text-foreground antialiased`}>
+      <head>
+        {/* 한글 폰트는 빌드 때 내려받지 않고 브라우저가 Google Fonts에서 직접 받는다. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        />
+      </head>
+      <body className="bg-background text-foreground antialiased">
         {children}
       </body>
     </html>
